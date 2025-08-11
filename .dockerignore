@@ -1,0 +1,92 @@
+# Docker ignore file for Digital Human
+# Excludes unnecessary files from Docker build context
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+digital-human/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+logs/
+temp/
+tmp/
+*.tmp
+
+# Model files (too large for Docker context)
+# Note: You'll need to mount these as volumes
+data/models/*.pth
+data/models/*.pt
+data/models/*.bin
+data/models/*.safetensors
+models/*.pth
+models/*.pt
+models/*.bin
+
+# Large data files
+*.mp4
+*.avi
+*.mov
+*.wav
+*.mp3
+*.pkl
+*.npz
+
+# Documentation
+README.md
+docs/
+*.md
+!requirements.txt
+
+# Development and testing
+tests/
+test_*
+*_test.py
+.pytest_cache
+
+# Build artifacts
+build/
+dist/
+*.egg-info
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
