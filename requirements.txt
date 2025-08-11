@@ -1,15 +1,15 @@
-# Core dependencies
-torch
+# Core dependencies - Tested and Working Versions
+torch>=2.7.1
 torch-ema
-numpy 
+numpy>=2.2.0
 pandas
-tqdm
-scipy
-scikit-learn
+tqdm>=4.67.0
+scipy>=1.15.0
+scikit-learn>=1.7.0
 
 # Image/Video processing
-opencv-python
-opencv-python-headless
+opencv-python>=4.12.0
+opencv-python-headless>=4.11.0
 imageio-ffmpeg
 ffmpeg-python
 trimesh
@@ -17,26 +17,26 @@ PyMCubes
 
 # Audio processing
 soundfile==0.12.1
-resampy
-librosa
+resampy>=0.4.3
+librosa>=0.11.0
 python_speech_features
 
 # ML/AI models
-transformers==4.46.2
-diffusers
+transformers>=4.55.0
+diffusers>=0.34.0
 accelerate
-einops
+einops>=0.8.1
 face_alignment
 lpips==0.1.3
 
-# Web server and networking
-aiohttp
-aiohttp_cors
-aiortc
-websockets==12.0
+# Web server and networking - WebRTC functional versions
+aiohttp>=3.11.0
+aiohttp_cors>=0.8.1
+aiortc>=1.13.0
+websockets>=12.0
 
-# TTS services
-edge_tts
+# TTS services - Working versions
+edge_tts>=7.2.0
 openai
 
 # Utilities
@@ -52,3 +52,12 @@ numba
 # Development tools
 tensorboardX
 matplotlib
+
+# Additional dependencies for digital human
+av
+flask
+flask-sockets
+json5
+regex
+torchvision
+torchaudio

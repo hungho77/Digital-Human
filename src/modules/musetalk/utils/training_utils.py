@@ -11,12 +11,12 @@ from diffusers.optimization import get_scheduler
 from omegaconf import OmegaConf
 from einops import rearrange
 
-from musetalk.models.syncnet import SyncNet
-from musetalk.loss.discriminator import MultiScaleDiscriminator, DiscriminatorFullModel
-from musetalk.loss.basic_loss import Interpolate
-import musetalk.loss.vgg_face as vgg_face
-from musetalk.data.dataset import PortraitDataset
-from musetalk.utils.utils import (
+from src.modules.musetalk.models.syncnet import SyncNet
+# from musetalk.loss.discriminator import MultiScaleDiscriminator, DiscriminatorFullModel
+# from musetalk.loss.basic_loss import Interpolate
+# import musetalk.loss.vgg_face as vgg_face
+# from musetalk.data.dataset import PortraitDataset
+from src.modules.musetalk.utils.utils import (
     get_image_pred,
     process_audio_features,
     process_and_save_images

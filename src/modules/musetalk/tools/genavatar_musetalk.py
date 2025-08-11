@@ -16,14 +16,14 @@ import torch
 # from mmpose.structures import merge_data_samples
 from tqdm import tqdm
 
-from musetalk.utils.preprocessing import get_landmark_and_bbox, read_imgs
-from musetalk.utils.blending import get_image_prepare_material
-from musetalk.utils.utils import load_all_model
+from src.modules.musetalk.utils.preprocessing import get_landmark_and_bbox, read_imgs
+from src.modules.musetalk.utils.blending import get_image_prepare_material
+from src.modules.musetalk.utils.utils import load_all_model
 
 try:
     from utils.face_parsing import FaceParsing
 except ModuleNotFoundError:
-    from musetalk.utils.face_parsing import FaceParsing
+    from src.modules.musetalk.utils.face_parsing import FaceParsing
 
 
 def video2imgs(vid_path, save_path, ext='.png', cut_frame=10000000):
