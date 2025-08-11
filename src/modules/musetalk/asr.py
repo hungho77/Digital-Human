@@ -5,7 +5,7 @@ import time
 import numpy as np
 
 from src.core.asr_base import BaseASR
-from musetalk.whisper.audio2feature import Audio2Feature
+from src.modules.musetalk.whisper.audio2feature import Audio2Feature
 
 
 class MuseASR(BaseASR):

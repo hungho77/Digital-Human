@@ -1,9 +1,13 @@
 var pc = null;
 
 function negotiate() {
+    console.log('Starting negotiation...');
     pc.addTransceiver('video', { direction: 'recvonly' });
     pc.addTransceiver('audio', { direction: 'recvonly' });
+    console.log('Added transceivers');
+    
     return pc.createOffer().then((offer) => {
+        console.log('Created offer:', offer);
         return pc.setLocalDescription(offer);
     }).then(() => {
         // wait for ICE gathering to complete
@@ -22,6 +26,7 @@ function negotiate() {
         });
     }).then(() => {
         var offer = pc.localDescription;
+        console.log('Sending offer to server:', offer);
         return fetch('/offer', {
             body: JSON.stringify({
                 sdp: offer.sdp,
@@ -33,38 +38,94 @@ function negotiate() {
             method: 'POST'
         });
     }).then((response) => {
+        console.log('Received response from server:', response);
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        }
         return response.json();
     }).then((answer) => {
-        document.getElementById('sessionid').value = answer.sessionid
+        console.log('Received answer from server:', answer);
+        document.getElementById('sessionid').value = answer.sessionid;
+        console.log('Setting remote description...');
         return pc.setRemoteDescription(answer);
     }).catch((e) => {
-        alert(e);
+        console.error('WebRTC negotiation failed:', e);
+        alert('Connection failed: ' + e.message);
     });
 }
 
 function start() {
+    console.log('Starting WebRTC connection...');
+    
     var config = {
         sdpSemantics: 'unified-plan'
     };
 
     if (document.getElementById('use-stun').checked) {
         config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+        console.log('Using STUN server:', config.iceServers);
+    } else {
+        console.log('STUN server disabled');
     }
 
     pc = new RTCPeerConnection(config);
+    console.log('RTCPeerConnection created with config:', config);
+    
+    // Add comprehensive connection monitoring
+    pc.addEventListener('connectionstatechange', () => {
+        console.log('Connection state changed to:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+            console.error('WebRTC connection failed!');
+        }
+    });
+    
+    pc.addEventListener('iceconnectionstatechange', () => {
+        console.log('ICE connection state changed to:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed') {
+            console.error('ICE connection failed!');
+        }
+    });
+    
+    pc.addEventListener('icegatheringstatechange', () => {
+        console.log('ICE gathering state:', pc.iceGatheringState);
+    });
 
     // connect audio / video
     pc.addEventListener('track', (evt) => {
+        console.log('Received track:', evt.track.kind, evt.track);
         if (evt.track.kind == 'video') {
-            document.getElementById('video').srcObject = evt.streams[0];
+            const video = document.getElementById('video');
+            video.srcObject = evt.streams[0];
+            console.log('Set video stream:', evt.streams[0]);
+            
+            // Handle autoplay issues
+            video.play().catch(e => {
+                console.log('Video autoplay failed, user interaction required:', e);
+                // Add play button or click handler if needed
+            });
         } else {
-            document.getElementById('audio').srcObject = evt.streams[0];
+            const audio = document.getElementById('audio');
+            if (audio) {
+                audio.srcObject = evt.streams[0];
+                console.log('Set audio stream:', evt.streams[0]);
+            } else {
+                console.error('Audio element not found!');
+            }
         }
     });
 
     document.getElementById('start').style.display = 'none';
-    negotiate();
+    console.log('Hidden start button, starting negotiation...');
+    negotiate().then(() => {
+        console.log('Negotiation completed successfully');
+    }).catch((e) => {
+        console.error('Negotiation failed:', e);
+        // Show start button again if negotiation fails
+        document.getElementById('start').style.display = 'inline-block';
+        document.getElementById('stop').style.display = 'none';
+    });
     document.getElementById('stop').style.display = 'inline-block';
+    console.log('Start function completed');
 }
 
 function stop() {

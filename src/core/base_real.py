@@ -304,6 +304,7 @@ class BaseReal:
                     block=True, timeout=1
                 )
             except queue.Empty:
+                logger.debug("res_frame_queue is empty, no frames to process")
                 continue
 
             if enable_transition:

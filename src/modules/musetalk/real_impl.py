@@ -20,10 +20,9 @@ from queue import Queue
 from threading import Thread, Event
 import torch.multiprocessing as mp
 
-from musetalk.utils.utils import get_file_type, get_video_fps, datagen
-from musetalk.myutil import get_image_blending
-from musetalk.utils.utils import load_all_model
-from musetalk.whisper.audio2feature import Audio2Feature
+from src.modules.musetalk.utils.utils import get_file_type, get_video_fps, datagen, load_all_model
+from src.modules.musetalk.myutil import get_image_blending
+from src.modules.musetalk.whisper.audio2feature import Audio2Feature
 
 from src.modules.musetalk.asr import MuseASR
 import asyncio
@@ -54,6 +53,14 @@ def load_avatar(avatar_id):
     latents_out_path = f"{avatar_path}/latents.pt"
     mask_out_path = f"{avatar_path}/mask"
     mask_coords_path = f"{avatar_path}/mask_coords.pkl"
+
+    # Check if MuseTalk-specific files exist
+    if not os.path.exists(latents_out_path):
+        raise FileNotFoundError(f"MuseTalk latents file not found: {latents_out_path}")
+    if not os.path.exists(mask_coords_path):
+        raise FileNotFoundError(f"MuseTalk mask coords file not found: {mask_coords_path}")
+    if not os.path.exists(mask_out_path):
+        raise FileNotFoundError(f"MuseTalk mask directory not found: {mask_out_path}")
 
     input_latent_list_cycle = torch.load(latents_out_path)
     with open(coords_path, 'rb') as f:
@@ -218,20 +225,6 @@ class MuseReal(BaseReal):
                 time.sleep(0.04 * video_track._queue.qsize() * 0.8)
         self.render_event.clear()
         logger.info('musereal thread stop')
-
-__all__ = ["MuseReal", "load_model", "load_avatar", "warm_up"]
-###############################################################################
-# MuseTalk real model - relocated implementation
-###############################################################################
-
-import os
-import sys
-
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-from musereal import MuseReal, load_model, load_avatar, warm_up  # noqa: F401
 
 __all__ = ["MuseReal", "load_model", "load_avatar", "warm_up"]
 

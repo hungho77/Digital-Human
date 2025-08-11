@@ -8,8 +8,8 @@ from einops import rearrange
 import shutil
 import os.path as osp
 
-from musetalk.models.vae import VAE
-from musetalk.models.unet import UNet,PositionalEncoding
+from src.modules.musetalk.models.vae import VAE
+from src.modules.musetalk.models.unet import UNet, PositionalEncoding
 
 
 def load_all_model(
@@ -19,7 +19,7 @@ def load_all_model(
     device=None,
 ):
     vae = VAE(
-        model_path = "stabilityai/sd-vae-ft-mse",
+        model_path = os.path.join("models", vae_type),
     )
     print(f"load unet model from {unet_model_path}")
     unet = UNet(
