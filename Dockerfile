@@ -1,55 +1,79 @@
-# Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
-#
-# NVIDIA CORPORATION and its licensors retain all intellectual property
-# and proprietary rights in and to this software, related documentation
-# and any modifications thereto.  Any use, reproduction, disclosure or
-# distribution of this software and related documentation without an express
-# license agreement from NVIDIA CORPORATION is strictly prohibited.
+# Digital Human - Modern Docker Configuration
+# Supports latest PyTorch, WebRTC, and all AI models
 
-ARG BASE_IMAGE=nvcr.io/nvidia/cuda:11.6.1-cudnn8-devel-ubuntu20.04
-FROM $BASE_IMAGE
+ARG CUDA_VERSION=12.1.0
+ARG UBUNTU_VERSION=22.04
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-devel-ubuntu${UBUNTU_VERSION}
 
-RUN apt-get update -yq --fix-missing \
- && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
     pkg-config \
     wget \
-    cmake \
     curl \
     git \
-    vim
+    vim \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libfontconfig1 \
+    libxrender1 \
+    libgl1-mesa-glx \
+    libasound2-dev \
+    portaudio19-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-#ENV PYTHONDONTWRITEBYTECODE=1
-#ENV PYTHONUNBUFFERED=1
+# Create symbolic link for python
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# nvidia-container-runtime
-#ENV NVIDIA_VISIBLE_DEVICES all
-#ENV NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics
+# Upgrade pip
+RUN pip install --upgrade pip setuptools wheel
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-RUN sh Miniconda3-latest-Linux-x86_64.sh -b -u -p ~/miniconda3
-RUN ~/miniconda3/bin/conda init
-RUN source ~/.bashrc
-RUN conda create -n nerfstream python=3.10
-RUN conda activate nerfstream
+# Copy requirements first for better Docker layer caching
+COPY requirements.txt .
 
-RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-# install depend
-RUN conda install pytorch==1.12.1 torchvision==0.13.1 cudatoolkit=11.3 -c pytorch
-Copy requirements.txt ./
-RUN pip install -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# additional libraries
-RUN pip install "git+https://github.com/facebookresearch/pytorch3d.git"
-RUN pip install tensorflow-gpu==2.8.0
+# Install additional dependencies for Docker environment
+RUN pip install --no-cache-dir \
+    gunicorn \
+    uvicorn[standard]
 
-RUN pip uninstall protobuf
-RUN pip install protobuf==3.20.1
+# Copy application code
+COPY . .
 
-RUN conda install ffmpeg
-Copy ../python_rtmpstream /python_rtmpstream
-WORKDIR /python_rtmpstream/python
-RUN pip install .
+# Create necessary directories
+RUN mkdir -p data/avatars data/models logs
 
-Copy ../nerfstream /nerfstream
-WORKDIR /nerfstream
-CMD ["python3", "app.py"]
+# Set permissions for scripts
+RUN chmod +x scripts/*.sh
+
+# Create non-root user for security
+RUN groupadd -r digitaluser && useradd -r -g digitaluser digitaluser
+RUN chown -R digitaluser:digitaluser /app
+USER digitaluser
+
+# Expose port
+EXPOSE 8010
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8010/ || exit 1
+
+# Default command - use quick start script
+CMD ["./scripts/quick_start.sh"]

@@ -74,7 +74,18 @@ export OPENAI_API_KEY="your-openai-key"
 ./scripts/run_with_validation.sh
 ```
 
-#### Option B: Direct Python Commands
+#### Option B: Docker Deployment (Production)
+```bash
+# Quick Docker start
+./scripts/docker_run.sh --build run --model wav2lip
+
+# Using Docker Compose
+docker-compose up
+
+# See DOCKER.md for complete guide
+```
+
+#### Option C: Direct Python Commands
 ```bash
 # Recommended: Run with validation
 python run.py
@@ -188,12 +199,17 @@ Digital-Human/
 ├── app.py                 # Main application entry point
 ├── run.py                 # Startup validation and runner
 ├── requirements.txt       # Dependencies
+├── Dockerfile            # Docker container configuration
+├── docker-compose.yml    # Docker Compose setup
+├── .dockerignore         # Docker build exclusions
+├── DOCKER.md             # Docker deployment guide
 ├── scripts/              # Launch scripts for different models
 │   ├── quick_start.sh    # Fast startup with auto-detection
 │   ├── run_wav2lip.sh    # Launch with Wav2Lip model
 │   ├── run_musetalk.sh   # Launch with MuseTalk model
 │   ├── run_ultralight.sh # Launch with Ultralight model
 │   ├── run_with_validation.sh # Full validation startup
+│   ├── docker_run.sh     # Docker container management
 │   └── README.md         # Scripts documentation
 ├── data/
 │   ├── avatars/          # Avatar configurations
