@@ -1,0 +1,50 @@
+{
+  "configurations": {
+    "basic_setup": {
+      "description": "Basic setup with EdgeTTS (free)",
+      "command": "python main.py --model musetalk --tts edgetts --REF_FILE en-US-AriaNeural"
+    },
+    "high_quality": {
+      "description": "High quality setup with voice cloning",
+      "command": "python main.py --model musetalk --tts xtts --TTS_SERVER http://localhost:9000 --batch_size 8"
+    },
+    "virtualcam": {
+      "description": "Virtual camera output for streaming",
+      "command": "python main.py --transport virtualcam --model wav2lip --tts edgetts"
+    },
+    "custom_avatar": {
+      "description": "Custom avatar with specific configuration",
+      "command": "python main.py --avatar_id my_avatar --customvideo_config data/custom_actions.json"
+    }
+  },
+  "environment_variables": {
+    "OPENAI_API_KEY": "your-openai-api-key-for-chat-functionality",
+    "CUDA_VISIBLE_DEVICES": "0"
+  },
+  "tts_voices": {
+    "english": [
+      "en-US-AriaNeural",
+      "en-US-JennyNeural",
+      "en-GB-SoniaNeural",
+      "en-AU-NatashaNeural"
+    ],
+    "other_languages": [
+      "es-ES-ElviraNeural",
+      "fr-FR-DeniseNeural",
+      "de-DE-KatjaNeural",
+      "ja-JP-NanamiNeural"
+    ]
+  },
+  "recommended_hardware": {
+    "minimum": {
+      "gpu": "GTX 1060 6GB",
+      "ram": "8GB",
+      "cpu": "4 cores"
+    },
+    "recommended": {
+      "gpu": "RTX 3060 12GB or better",
+      "ram": "16GB",
+      "cpu": "8 cores"
+    }
+  }
+}
