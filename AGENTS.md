@@ -49,7 +49,7 @@ docs/
 ├── environment-setup.md    # Prerequisites & installation
 ├── development.md          # Development workflow & sprint plan
 ├── architecture.md         # System design & components
-├── deployment.md          # Deployment strategies
-├── api-reference.md       # API documentation
-└── branch-rule.md      # Git workflow rules
+├── deployment.md           # Deployment strategies
+├── api-reference.md        # API documentation
+└── branch-rule.md          # Git workflow rules
 ```

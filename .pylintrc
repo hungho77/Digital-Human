@@ -1,4 +1,4 @@
-[MASTER]
+[MAIN]
 # Python code to execute, usually for sys.path manipulation such as pypa.
 init-hook='import sys; sys.path.append(".")'
 
