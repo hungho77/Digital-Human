@@ -1,7 +1,7 @@
 name: Claude Code Assistant
 
 permissions:
-  contents: read
+  contents: write      # Changed from 'read' to 'write' so Claude can create branches
   pull-requests: write
   issues: write
 
@@ -23,10 +23,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      # THIS IS THE MISSING STEP!
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper branching
+      
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
         with:
-          # Use ONE of these (comment out the other):
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # OR if using OAuth:
           # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          
