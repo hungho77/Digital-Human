@@ -1,4 +1,6 @@
-import sys, os
+import os
+import sys
+
 # add modules path for vendored code (whisper/musetalk etc.) before other imports
 MODULES = os.path.join(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), "modules"
@@ -6,29 +8,28 @@ MODULES = os.path.join(
 if MODULES not in sys.path:
     sys.path.insert(0, MODULES)
 
-from aiohttp import web
-import aiohttp_cors
-from aiortc import (
-    RTCPeerConnection,
-    RTCSessionDescription,
-    RTCIceServer,
-    RTCConfiguration,
-)
-from aiortc.rtcrtpsender import RTCRtpSender
-from src.services.webrtc import HumanPlayer
-from src.services.real import ensure_model_loaded, build_real
-from src.core.base_real import BaseReal
-from src.services.llm import llm_response
-
 import argparse
-import random
 import asyncio
-
-from typing import Dict
-from src.utils.logger import logger
 import gc
 import json
+import random
+from typing import Dict
 
+import aiohttp_cors
+from aiohttp import web
+from aiortc import (
+    RTCConfiguration,
+    RTCIceServer,
+    RTCPeerConnection,
+    RTCSessionDescription,
+)
+from aiortc.rtcrtpsender import RTCRtpSender
+
+from src.core.base_real import BaseReal
+from src.services.llm import llm_response
+from src.services.real import build_real, ensure_model_loaded
+from src.services.webrtc import HumanPlayer
+from src.utils.logger import logger
 
 # Global state
 nerfreals: Dict[int, BaseReal] = {}  # sessionid:BaseReal

@@ -1,24 +1,20 @@
 from __future__ import annotations
-import time
-import numpy as np
-import soundfile as sf
-import resampy
+
 import asyncio
-import edge_tts
-
-
-from typing import Iterator
-
-import requests
-
 import queue
-from queue import Queue
-from io import BytesIO
-
-from threading import Thread
+import time
 from enum import Enum
+from io import BytesIO
+from queue import Queue
+from threading import Thread
+from typing import TYPE_CHECKING, Iterator
 
-from typing import TYPE_CHECKING
+import edge_tts
+import numpy as np
+import requests
+import resampy
+import soundfile as sf
+
 if TYPE_CHECKING:
     from src.core.base_real import BaseReal
 

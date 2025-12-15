@@ -4,8 +4,8 @@ Digital Human - Main Entry Point
 
 """
 
-import sys
 import os
+import sys
 
 # Ensure project root src/ and src/modules are in sys.path
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

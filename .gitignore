@@ -1,22 +1,63 @@
+# Python cache
 __pycache__/
-build/
-*.egg-info/
+*.py[cod]
+*$py.class
 *.so
-*.mp4
 
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Code quality reports
+pylint_report.txt
+pylint-report.json
+bandit_report.html
+requirements-freeze.txt
+
+# Logs
+*.log
+workspace/log_ngp.txt
+
+# Project specific
 tmp*
 trial*/
-
 data
 data_utils/face_tracking/3DMM/*
 data_utils/face_parsing/79999_iter.pth
-
 pretrained
-*.mp4
-.DS_Store
-workspace/log_ngp.txt
-.idea
 models/
-*.log
-dist
 checkpoints/
+
+# Media files
+*.mp4
+*.avi
+*.mov
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -2,13 +2,13 @@
 # Base ASR
 ###############################################################################
 
-import numpy as np
-
 import queue
 from queue import Queue
+from typing import TYPE_CHECKING, Optional
+
+import numpy as np
 import torch.multiprocessing as mp
 
-from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from src.core.base_real import BaseReal
 

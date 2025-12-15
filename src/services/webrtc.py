@@ -1,15 +1,14 @@
 import asyncio
+import fractions
 import threading
 import time
-from typing import Tuple, Optional, Set, Union
+from typing import Optional, Set, Tuple, Union
 
+from aiortc import MediaStreamTrack
 from av.frame import Frame
 from av.packet import Packet
-import fractions
-from aiortc import MediaStreamTrack
 
 from src.utils.logger import logger as mylogger
-
 
 AUDIO_PTIME = 0.020  # 20ms audio packetization
 VIDEO_CLOCK_RATE = 90000

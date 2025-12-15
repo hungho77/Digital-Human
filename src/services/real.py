@@ -1,46 +1,51 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, Any, Optional
 from threading import Lock
+from typing import Any, Dict, Optional, Tuple
 
 from src.utils.logger import logger
 
 _MODEL_CACHE: Dict[Tuple[str, str], Tuple[Any, Any]] = {}
 _CACHE_LOCK = Lock()
 
+
 def _import_model_modules(model_name: str):
     """Dynamically import model modules to avoid dependency issues."""
     if model_name == "wav2lip":
-        from src.modules.wav2lip.real import (
-            LipReal,
-            load_model,
-            load_avatar,
-            warm_up,
-        )
+        from src.modules.wav2lip.real import LipReal, load_avatar, load_model, warm_up
+
         return LipReal, load_model, load_avatar, warm_up
     elif model_name == "ultralight":
         from src.modules.ultralight.real import (
             LightReal,
-            load_model,
             load_avatar,
+            load_model,
             warm_up,
         )
+
         return LightReal, load_model, load_avatar, warm_up
     elif model_name == "musetalk":
         try:
             from src.modules.musetalk.real import (
                 MuseReal,
-                load_model,
                 load_avatar,
+                load_model,
                 warm_up,
             )
+
             return MuseReal, load_model, load_avatar, warm_up
         except ImportError as e:
             logger.error(f"Failed to import musetalk: {e}")
-            logger.error("MuseTalk requires additional dependencies like diffusers, transformers compatibility")
-            raise ImportError(f"MuseTalk model not available due to missing dependencies: {e}")
+            logger.error(
+                "MuseTalk requires additional dependencies like diffusers, transformers compatibility"
+            )
+            raise ImportError(
+                f"MuseTalk model not available due to missing dependencies: {e}"
+            )
     else:
-        raise ValueError(f"Unknown model '{model_name}'. Expected: wav2lip, ultralight, or musetalk")
+        raise ValueError(
+            f"Unknown model '{model_name}'. Expected: wav2lip, ultralight, or musetalk"
+        )
 
 
 def _do_warm_up(model_name: str, warm_up_fn, opt, model, avatar) -> None:
@@ -76,18 +81,24 @@ def ensure_model_loaded(opt) -> Tuple[Any, Any]:
             return _MODEL_CACHE[key]
 
         logger.info("Loading model assets for %s (avatar=%s)", model_name, avatar_id)
-        
+
         # Import modules dynamically
-        real_cls, load_model_fn, load_avatar_fn, warm_up_fn = _import_model_modules(model_name)
+        real_cls, load_model_fn, load_avatar_fn, warm_up_fn = _import_model_modules(
+            model_name
+        )
 
         # Load assets
         if model_name == "musetalk":
             model = load_model_fn()
         elif model_name == "wav2lip":
-            model_path = getattr(opt, "model_path", None) or "./models/wav2lip/wav2lip.pth"
+            model_path = (
+                getattr(opt, "model_path", None) or "./models/wav2lip/wav2lip.pth"
+            )
             model = load_model_fn(model_path)
         else:  # ultralight
-            model_path = getattr(opt, "model_path", None) or "./models/ultralight/ultralight.pth"  
+            model_path = (
+                getattr(opt, "model_path", None) or "./models/ultralight/ultralight.pth"
+            )
             model = load_model_fn(model_path)
         avatar = load_avatar_fn(avatar_id)
 
@@ -113,7 +124,7 @@ def build_real(opt, model=None, avatar=None):
 
     # Import the class dynamically
     real_cls, _, _, _ = _import_model_modules(model_name)
-    
+
     logger.info("Building real instance: %s", real_cls.__name__)
     return real_cls(opt, model, avatar)
 
