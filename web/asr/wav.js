@@ -20,12 +20,12 @@ Recorder.prototype.wav=function(res,True,False){
 			,size=res.length
 			,sampleRate=set.sampleRate
 			,bitRate=set.bitRate==8?8:16;
-		
+
 		//Encode data https://github.com/mattdiamond/Recorderjs https://www.cnblogs.com/blqw/p/3782420.html https://www.cnblogs.com/xiaoqi/p/6993912.html
 		var dataLength=size*(bitRate/8);
 		var buffer=new ArrayBuffer(44+dataLength);
 		var data=new DataView(buffer);
-		
+
 		var offset=0;
 		var writeString=function(str){
 			for (var i=0;i<str.length;i++,offset++) {
@@ -40,7 +40,7 @@ Recorder.prototype.wav=function(res,True,False){
 			data.setUint32(offset,v,true);
 			offset+=4;
 		};
-		
+
 		/* RIFF identifier */
 		writeString('RIFF');
 		/* RIFF chunk length */
@@ -79,8 +79,8 @@ Recorder.prototype.wav=function(res,True,False){
 				data.setInt16(offset,res[i],true);
 			};
 		};
-		
-		
+
+
 		True(new Blob([data.buffer],{type:"audio/wav"}));
 	}
 })();

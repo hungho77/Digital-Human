@@ -20,17 +20,17 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    
+
     - name: Cache pip dependencies
       uses: actions/cache@v4
       with:
@@ -38,24 +38,24 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install pylint>=3.0.3
         # Install project dependencies for proper import resolution
         pip install -r requirements.txt || echo "Some dependencies may have failed"
-    
+
     - name: Run Pylint
       run: |
         # Get list of Python files
         PYTHON_FILES=$(git ls-files '*.py')
-        
+
         if [ -z "$PYTHON_FILES" ]; then
           echo "No Python files found to lint"
           exit 0
         fi
-        
+
         echo "Linting Python files..."
         pylint $PYTHON_FILES \
           --output-format=text \
@@ -63,7 +63,7 @@ jobs:
           --score=yes \
           --fail-under=7.0 \
           --exit-zero
-    
+
     - name: Run Pylint with JSON output
       if: always()
       run: |
@@ -73,7 +73,7 @@ jobs:
             --output-format=json \
             --exit-zero > pylint-report.json || true
         fi
-    
+
     - name: Upload Pylint report
       if: always()
       uses: actions/upload-artifact@v4
@@ -81,14 +81,14 @@ jobs:
         name: pylint-report-py${{ matrix.python-version }}
         path: pylint-report.json
         retention-days: 30
-    
+
     - name: Check critical errors only (for PR blocking)
       run: |
         PYTHON_FILES=$(git ls-files '*.py')
         if [ -z "$PYTHON_FILES" ]; then
           exit 0
         fi
-        
+
         # Only fail on critical errors (E) and fatal (F)
         pylint $PYTHON_FILES \
           --disable=all \

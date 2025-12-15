@@ -6,13 +6,13 @@
 
 function WebSocketConnectMethod( config ) { //Define socket connection method class
 
-	
+
 	var speechSokt;
 	var connKeeperID;
-	
+
 	var msgHandle = config.msgHandle;
 	var stateHandle = config.stateHandle;
-			  
+
 	this.wsStart = function () {
 		var Uri = document.getElementById('wssip').value; //"wss://111.205.137.58:5821/wss/" //Set wss asr online interface address like wss://X.X.X.X:port/wss/
 		if(Uri.match(/wss:\S*|ws:\S*/))
@@ -24,7 +24,7 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 			alert("Please check the correctness of the wss address");
 			return 0;
 		}
- 
+
 		if ( 'WebSocket' in window ) {
 			speechSokt = new WebSocket( Uri ); // Define socket connection object
 			speechSokt.onopen = function(e){onOpen(e);}; // Define response function
@@ -42,7 +42,7 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 			return 0;
 		}
 	};
-	
+
 	// Define stop and send functions
 	this.wsStop = function () {
 		if(speechSokt != undefined) {
@@ -50,18 +50,18 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 			speechSokt.close();
 		}
 	};
-	
+
 	this.wsSend = function ( oneData ) {
- 
+
 		if(speechSokt == undefined) return;
 		if ( speechSokt.readyState === 1 ) { // 0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
- 
+
 			speechSokt.send( oneData );
- 
-			
+
+
 		}
 	};
-	
+
 	// Message and state response in SOCKET connection
 	function onOpen( e ) {
 		// Send json
@@ -73,7 +73,7 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 			"chunk_interval":10,
 			"itn":getUseITN(),
 			"mode":getAsrMode(),
-			
+
 		};
 		if(isfilemode)
 		{
@@ -84,9 +84,9 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 				request.audio_fs=file_sample_rate;
 			}
 		}
-		
+
 		var hotwords=getHotwords();
- 
+
 		if(hotwords!=null  )
 		{
 			request.hotwords=hotwords;
@@ -95,25 +95,25 @@ function WebSocketConnectMethod( config ) { //Define socket connection method cl
 		speechSokt.send(JSON.stringify(request));
 		console.log("Connection successful");
 		stateHandle(0);
- 
+
 	}
-	
+
 	function onClose( e ) {
 		stateHandle(1);
 	}
-	
+
 	function onMessage( e ) {
- 
+
 		msgHandle( e );
 	}
-	
+
 	function onError( e ) {
- 
+
 		info_div.innerHTML="Connection"+e;
 		console.log(e);
 		stateHandle(2);
-		
+
 	}
-    
- 
+
+
 }

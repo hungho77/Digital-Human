@@ -17,7 +17,7 @@ repos:
           - --fail-under=7.0
           - --score=yes
         exclude: ^(tests/|scripts/|docs/)
-  
+
   # Basic file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -35,22 +35,22 @@ repos:
       - id: debug-statements
       - id: mixed-line-ending
         args: [--fix=lf]
-  
+
   # Python code formatting (optional - uncomment if you want to use black)
-  # - repo: https://github.com/psf/black
-  #   rev: 24.1.1
-  #   hooks:
-  #     - id: black
-  #       language_version: python3.10
-  #       args: [--line-length=100]
-  
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3.10
+        args: [--line-length=100]
+
   # Import sorting (optional - uncomment if you want to use isort)
-  # - repo: https://github.com/pycqa/isort
-  #   rev: 5.13.2
-  #   hooks:
-  #     - id: isort
-  #       args: [--profile=black, --line-length=100]
-  
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=100]
+
   # Security checks
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
@@ -65,6 +65,5 @@ repos:
     hooks:
       - id: mypy
         args: [--ignore-missing-imports, --python-version=3.10]
-        additional_dependencies: [types-all]
+        additional_dependencies: []
         exclude: ^(tests/|scripts/)
-

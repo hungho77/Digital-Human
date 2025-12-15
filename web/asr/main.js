@@ -17,9 +17,9 @@ var rec = Recorder({
 	onProcess:recProcess
 });
 
- 
- 
- 
+
+
+
 var sampleBuf=new Int16Array();
 // Define button response events
 var btnStart = document.getElementById('btnStart');
@@ -28,26 +28,26 @@ var btnStop = document.getElementById('btnStop');
 btnStop.onclick = stop;
 btnStop.disabled = true;
 btnStart.disabled = true;
- 
+
 btnConnect= document.getElementById('btnConnect');
 btnConnect.onclick = start;
 
 var awsslink= document.getElementById('wsslink');
 
- 
+
 var rec_text="";  // for online rec asr result
 var offline_text=""; // for offline rec asr result
 var info_div = document.getElementById('info_div');
 
 var upfile = document.getElementById('upfile');
 
- 
+
 
 var isfilemode=false;  // if it is in file mode
 var file_ext="";
 var file_sample_rate=16000; //for wav file sample rate
 var file_data_array;  // array to save file data
- 
+
 var totalsend=0;
 
 
@@ -59,17 +59,17 @@ var totalsend=0;
 // document.getElementById('wssip').value=now_ipaddress;
 addresschange();
 function addresschange()
-{   
-	
-    var Uri = document.getElementById('wssip').value; 
+{
+
+    var Uri = document.getElementById('wssip').value;
 	document.getElementById('info_wslink').innerHTML="Click here for manual authorization (iOS phone)";
 	Uri=Uri.replace(/wss/g,"https");
 	console.log("addresschange uri=",Uri);
-	
+
 	awsslink.onclick=function(){
 		window.open(Uri, '_blank');
 		}
-	
+
 }
 
 upfile.onclick=function()
@@ -77,7 +77,7 @@ upfile.onclick=function()
 		btnStart.disabled = true;
 		btnStop.disabled = true;
 		btnConnect.disabled=false;
-	
+
 }
 
 // from https://github.com/xiangyuecn/Recorder/tree/master
@@ -95,9 +95,9 @@ var readWavInfo=function(bytes){
 		};
 		return true;
 	};
-	
+
 	if(eq(0,"RIFF")&&eq(8,"WAVEfmt ")){
- 
+
 		var numCh=wavView[22];
 		if(wavView[20]==1 && (numCh==1||numCh==2)){//raw pcm mono or stereo
 			var sampleRate=wavView[24]+(wavView[25]<<8)+(wavView[26]<<16)+(wavView[27]<<24);
@@ -114,7 +114,7 @@ var readWavInfo=function(bytes){
 				var i0=i;
 				i+=4;
 				i+=4+wavView[i]+(wavView[i+1]<<8)+(wavView[i+2]<<16)+(wavView[i+3]<<24);
-				if(i0==12){//fmt 
+				if(i0==12){//fmt
 					heads.push(wavView.subarray(i0,i));
 					headSize+=i-i0;
 				}
@@ -138,23 +138,23 @@ var readWavInfo=function(bytes){
 };
 
 upfile.onchange = function () {
-　　　　　　var len = this.files.length;  
+　　　　　　var len = this.files.length;
             for(let i = 0; i < len; i++) {
 
                 let fileAudio = new FileReader();
-                fileAudio.readAsArrayBuffer(this.files[i]);  
- 
+                fileAudio.readAsArrayBuffer(this.files[i]);
+
 				file_ext=this.files[i].name.split('.').pop().toLowerCase();
                 var audioblob;
                 fileAudio.onload = function() {
                 audioblob = fileAudio.result;
- 
-				 
+
+
 				 file_data_array=audioblob;
- 
-                  
+
+
                  		info_div.innerHTML='Please click connect to start recognition';
- 
+
                 }
 
 　　　　　　　　　　fileAudio.onerror = function(e) {
@@ -166,76 +166,76 @@ upfile.onchange = function () {
             for(let i = 0; i < len; i++) {
 
                 let fileAudio = new FileReader();
-                fileAudio.readAsArrayBuffer(this.files[i]);  
+                fileAudio.readAsArrayBuffer(this.files[i]);
                 fileAudio.onload = function() {
                 audioblob = new Uint8Array(fileAudio.result);
- 
+
 				// for wav file, we can get the sample rate
 				var info=readWavInfo(audioblob);
 				   console.log(info);
 				   file_sample_rate=info.sampleRate;
-	 
- 
+
+
                 }
 
-　　　　　　 
+　　　　　　
             }
- 
+
         }
 
 function play_file()
 {
 		  var audioblob=new Blob( [ new Uint8Array(file_data_array)] , {type :"audio/wav"});
 		  var audio_record = document.getElementById('audio_record');
-		  audio_record.src =  (window.URL||webkitURL).createObjectURL(audioblob); 
+		  audio_record.src =  (window.URL||webkitURL).createObjectURL(audioblob);
           audio_record.controls=true;
 		  //audio_record.play();  //not auto play
 }
 function start_file_send()
 {
 		sampleBuf=new Uint8Array( file_data_array );
- 
-		var chunk_size=960; // for asr chunk_size [5, 10, 5]
- 
 
- 
-		
- 
+		var chunk_size=960; // for asr chunk_size [5, 10, 5]
+
+
+
+
+
 		while(sampleBuf.length>=chunk_size){
-			
+
 		    sendBuf=sampleBuf.slice(0,chunk_size);
 			totalsend=totalsend+sampleBuf.length;
 			sampleBuf=sampleBuf.slice(chunk_size,sampleBuf.length);
 			wsconnecter.wsSend(sendBuf);
- 
-		 
+
+
 		}
- 
+
 		stop();
 
- 
+
 
 }
- 
-	
+
+
 function on_recoder_mode_change()
 {
             var item = null;
             var obj = document.getElementsByName("recoder_mode");
-            for (var i = 0; i < obj.length; i++) { // iterate radios 
+            for (var i = 0; i < obj.length; i++) { // iterate radios
                 if (obj[i].checked) {
-                    item = obj[i].value;  
+                    item = obj[i].value;
 					break;
                 }
-		    
+
 
            }
 		    if(item=="mic")
 			{
 				document.getElementById("mic_mode_div").style.display = 'block';
 				document.getElementById("rec_mode_div").style.display = 'none';
- 
- 
+
+
 		        btnStart.disabled = true;
 		        btnStop.disabled = true;
 		        btnConnect.disabled=false;
@@ -245,40 +245,40 @@ function on_recoder_mode_change()
 			{
 				document.getElementById("mic_mode_div").style.display = 'none';
 				document.getElementById("rec_mode_div").style.display = 'block';
- 
+
 		        btnStart.disabled = true;
 		        btnStop.disabled = true;
 		        btnConnect.disabled=true;
 			    isfilemode=true;
 				info_div.innerHTML='Please click to select file';
-			    
-	 
+
+
 			}
 }
 
 
 function getHotwords(){
-	
+
 	var obj = document.getElementById("varHot");
 
 	if(typeof(obj) == 'undefined' || obj==null || obj.value.length<=0){
 	  return null;
 	}
 	let val = obj.value.toString();
-  
+
 	console.log("hotwords="+val);
 	let items = val.split(/[(\r\n)\r\n]+/);  //split by \r\n
 	var jsonresult = {};
 	const regexNum = /^[0-9]*$/; // test number
 	for (item of items) {
-  
+
 		let result = item.split(" ");
 		if(result.length>=2 && regexNum.test(result[result.length-1]))
-		{ 
+		{
 			var wordstr="";
 			for(var i=0;i<result.length-1;i++)
 				wordstr=wordstr+result[i]+" ";
-  
+
 			jsonresult[wordstr.trim()]= parseInt(result[result.length-1]);
 		}
 	}
@@ -290,12 +290,12 @@ function getAsrMode(){
 
             var item = null;
             var obj = document.getElementsByName("asr_mode");
-            for (var i = 0; i < obj.length; i++) { //Traverse Radio 
+            for (var i = 0; i < obj.length; i++) { //Traverse Radio
                 if (obj[i].checked) {
-                    item = obj[i].value;  
+                    item = obj[i].value;
 					break;
                 }
-		    
+
 
            }
             if(isfilemode)
@@ -303,10 +303,10 @@ function getAsrMode(){
 				item= "offline";
 			}
 		   console.log("asr mode"+item);
-		   
+
 		   return item;
 }
-		   
+
 function handleWithTimestamp(tmptext,tmptime)
 {
 	console.log( "tmptext: " + tmptext);
@@ -321,7 +321,7 @@ function handleWithTimestamp(tmptext,tmptime)
 	var char_index=0; // index for timestamp
 	var text_withtime="";
 	for(var i=0;i<words.length;i++)
-	{   
+	{
 	if(words[i]=="undefined"  || words[i].length<=0)
 	{
 		continue;
@@ -340,7 +340,7 @@ function handleWithTimestamp(tmptext,tmptime)
 	}
 	}
 	return text_withtime;
-	
+
 
 }
 
@@ -378,7 +378,7 @@ async function waitSpeakingEnd() {
 		await sleep(1000)
 	}
 	await sleep(2000)
-	rec.start() 
+	rec.start()
 }
 // Speech recognition result; parse jsonMsg data, append recognition result to edit box
 function getJsonMessage( jsonMsg ) {
@@ -411,7 +411,7 @@ function getJsonMessage( jsonMsg ) {
 		rec_text=rec_text+rectxt; //.replace(/ +/g,"");
 	}
 	var varArea=document.getElementById('varArea');
-	
+
 	varArea.value=rec_text;
 	console.log( "offline_text: " + asrmodel+","+offline_text);
 	console.log( "rec_text: " + rec_text);
@@ -419,23 +419,23 @@ function getJsonMessage( jsonMsg ) {
 		console.log("call stop ws!");
 		play_file();
 		wsconnecter.wsStop();
-        
+
 		info_div.innerHTML="Please click connect";
- 
+
 		btnStart.disabled = true;
 		btnStop.disabled = true;
 		btnConnect.disabled=false;
 	}
-	
-	 
- 
+
+
+
 }
 
 // Connection state response
 function getConnState( connState ) {
 	if ( connState === 0 ) { //on open
- 
- 
+
+
 		info_div.innerHTML='Connection successful! Please click start';
 		if (isfilemode==true){
 			info_div.innerHTML='Please wait patiently, large files take longer to wait';
@@ -452,20 +452,20 @@ function getConnState( connState ) {
 	} else if ( connState === 2 ) {
 		stop();
 		console.log( 'connecttion error' );
-		 
+
 		alert("Connection address "+document.getElementById('wssip').value+" failed, please check asr address and port. Or try manual authorization on the interface, then connect.");
 		btnStart.disabled = true;
 		btnStop.disabled = true;
 		btnConnect.disabled=false;
- 
- 
+
+
 		info_div.innerHTML='Please click connect';
 	}
 }
 
 function record()
 {
- 
+
 		 rec.open( function(){
 		 rec.start();
 		 		console.log("Start");
@@ -473,19 +473,19 @@ function record()
 			btnStop.disabled = false;
 			btnConnect.disabled=true;
 		 });
- 
+
 }
 
- 
+
 
 // Recognition start, stop, clear operations
 function start() {
-	
+
 	// Clear display
 	clear();
 	//Control state update
  	console.log("isfilemode"+isfilemode);
-    
+
 	//Start connection
 	var ret=wsconnecter.wsStart();
 	// 1 is ok, 0 is error
@@ -495,7 +495,7 @@ function start() {
 		btnStart.disabled = true;
 		btnStop.disabled = true;
 		btnConnect.disabled=true;
- 
+
         return 1;
 	}
 	else
@@ -504,12 +504,12 @@ function start() {
 		btnStart.disabled = true;
 		btnStop.disabled = true;
 		btnConnect.disabled=false;
- 
+
 		return 0;
 	}
 }
 
- 
+
 function stop() {
 		var chunk_size = new Array( 5, 10, 5 );
 		var request = {
@@ -526,14 +526,14 @@ function stop() {
 		sampleBuf=new Int16Array();
 		}
 	   wsconnecter.wsSend( JSON.stringify(request) );
- 
-	  
-	
-	 
 
- 
+
+
+
+
+
 	// Control state update
-	
+
 	isRec = false;
     		info_div.innerHTML="Data sent, please wait, recognizing...";
 
@@ -547,56 +547,56 @@ function stop() {
 		wsconnecter.wsStop();
 		btnConnect.disabled=false;
 		info_div.innerHTML="Please click connect";}, 3000 );
- 
- 
-	   
+
+
+
 	rec.stop(function(blob,duration){
-  
+
 		console.log(blob);
 		var audioBlob = Recorder.pcm2wav(data = {sampleRate:16000, bitRate:16, blob:blob},
 		function(theblob,duration){
 				console.log(theblob);
 		var audio_record = document.getElementById('audio_record');
-		audio_record.src =  (window.URL||webkitURL).createObjectURL(theblob); 
+		audio_record.src =  (window.URL||webkitURL).createObjectURL(theblob);
         audio_record.controls=true;
-		//audio_record.play(); 
-         	
+		//audio_record.play();
+
 
 	}   ,function(msg){
 		 console.log(msg);
 	}
 		);
- 
 
- 
+
+
 	},function(errMsg){
 		console.log("errMsg: " + errMsg);
 	});
    }
     	// Stop connection
- 
-    
+
+
 
 }
 
 function clear() {
- 
+
     var varArea=document.getElementById('varArea');
- 
+
 	varArea.value="";
     rec_text="";
 	offline_text="";
- 
+
 }
 
- 
+
 function recProcess( buffer, powerLevel, bufferDuration, bufferSampleRate,newBufferIdx,asyncEnd ) {
 	if ( isRec === true ) {
-		var data_48k = buffer[buffer.length-1];  
- 
+		var data_48k = buffer[buffer.length-1];
+
 		var  array_48k = new Array(data_48k);
 		var data_16k=Recorder.SampleData(array_48k,bufferSampleRate,16000).data;
- 
+
 		sampleBuf = Int16Array.from([...sampleBuf, ...data_16k]);
 		var chunk_size=960; // for asr chunk_size [5, 10, 5]
 		info_div.innerHTML=""+bufferDuration/1000+"s";
@@ -604,13 +604,13 @@ function recProcess( buffer, powerLevel, bufferDuration, bufferSampleRate,newBuf
 		    sendBuf=sampleBuf.slice(0,chunk_size);
 			sampleBuf=sampleBuf.slice(chunk_size,sampleBuf.length);
 			wsconnecter.wsSend(sendBuf);
-			
-			
-		 
+
+
+
 		}
-		
- 
-		
+
+
+
 	}
 }
 

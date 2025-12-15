@@ -52,7 +52,7 @@ Recorder.BufferSize=4096;
 Recorder.Destroy=function(){
 	CLog(RecTxt+" Destroy");
 	Disconnect();//Disconnect any existing global Stream and resources
-	
+
 	for(var k in DestroyList){
 		DestroyList[k]();
 	};
@@ -73,7 +73,7 @@ Recorder.Support=function(){
 		return false;
 	};
 	Recorder.Scope=scope;
-	
+
 	if(!Recorder.GetContext()){
 		return false;
 	};
@@ -88,11 +88,11 @@ Recorder.GetContext=function(){
 	if(!AC){
 		return null;
 	};
-	
+
 	if(!Recorder.Ctx||Recorder.Ctx.state=="closed"){
 		//Cannot construct repeatedly, low version number of hardware contexts reached maximum (6)
 		Recorder.Ctx=new AC();
-		
+
 					Recorder.BindDestroy("Ctx",function(){
 			var ctx=Recorder.Ctx;
 			if(ctx&&ctx.close){//Close if possible, keep if can't close
@@ -116,7 +116,7 @@ Recorder[ConnectEnableWorklet]=false;
 /*Initialize H5 audio collection connection. If sourceStream is provided, only a simple connection process will be performed. If it's normal microphone recording, the Stream at this time is global, and after disconnection on Safari it cannot be connected again, showing as silence, so use global processing to avoid calling disconnect; global processing also helps shield underlying details, no need to call underlying interfaces at start, improving compatibility and reliability.*/
 var Connect=function(streamStore,isUserMedia){
 	var bufferSize=streamStore.BufferSize||Recorder.BufferSize;
-	
+
 	var ctx=Recorder.Ctx,stream=streamStore.Stream;
 	var mediaConn=function(node){
 		var media=stream._m=ctx.createMediaStreamSource(stream);
@@ -129,29 +129,29 @@ var Connect=function(streamStore,isUserMedia){
 	}
 	var isWebM,isWorklet,badInt,webMTips="";
 	var calls=stream._call;
-	
+
 	// Process audio data returned by the browser
 	var onReceive=function(float32Arr){
 		for(var k0 in calls){//has item
 			var size=float32Arr.length;
-			
+
 			var pcm=new Int16Array(size);
 			var sum=0;
-			for(var j=0;j<size;j++){//floatTo16BitPCM 
+			for(var j=0;j<size;j++){//floatTo16BitPCM
 				var s=Math.max(-1,Math.min(1,float32Arr[j]));
 				s=s<0?s*0x8000:s*0x7FFF;
 				pcm[j]=s;
 				sum+=Math.abs(s);
 			};
-			
+
 			for(var k in calls){
 				calls[k](pcm,sum);
 			};
-			
+
 			return;
 		};
 	};
-	
+
 	var scriptProcessor="ScriptProcessor";// A bunch of string names, helpful for minifying js
 	var audioWorklet="audioWorklet";
 	var recAudioWorklet=RecTxt+" "+audioWorklet;
@@ -168,10 +168,10 @@ var Connect=function(streamStore,isUserMedia){
 		isWorklet=stream.isWorklet=false;
 		_Disconn_n(stream);
 		CLog("Connect uses legacy "+scriptProcessor+", "+(Recorder[ConnectEnableWorklet]?"but already":"you can")+" set "+RecTxt+"."+ConnectEnableWorklet+"=true to try enabling "+audioWorklet+webMTips+oldIsBest,3);
-		
+
 		var process=stream._p=oldFn.call(ctx,bufferSize,1,1);// Mono channel, simpler data processing
 		mediaConn(process);
-		
+
 		var _DsetTxt="_D220626",_Dset=Recorder[_DsetTxt];if(_Dset)CLog("Use "+RecTxt+"."+_DsetTxt,3);
 		process.onaudioprocess=function(e){
 			var arr=e.inputBuffer.getChannelData(0);
@@ -190,7 +190,7 @@ var connWorklet=function(){
 	// Try to enable AudioWorklet
 	isWebM=stream.isWebM=false;
 	_Disconn_r(stream);
-	
+
 	isWorklet=stream.isWorklet=!oldFn || Recorder[ConnectEnableWorklet];
 	var AwNode=window.AudioWorkletNode;
 	if(!(isWorklet && ctx[audioWorklet] && AwNode)){
@@ -214,7 +214,7 @@ var connWorklet=function(){
 				};
 				console.log("$RA .ctor call", option);
 			});
-			
+
 			// https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletProcessor/process Callback gets 128 samples each time, 375 times per second; high frequency may cause mobile performance issues leading to lost callbacks.
 			clazz+="process "+xf(function(input,b,c){// Need ctx to be active before callbacks occur
 				var This=this,bufferSize=This.bufferSize;
@@ -223,11 +223,11 @@ var connWorklet=function(){
 				if(input.length){
 					buffer.set(input,pos);
 					pos+=input.length;
-					
+
 					var len=~~(pos/bufferSize)*bufferSize;
 					if(len){
 						this.port.postMessage({ val: buffer.slice(0,len) });
-						
+
 						var more=buffer.subarray(len,pos);
 						buffer=new Float32Array(bufferSize*2);
 						buffer.set(more);
@@ -247,7 +247,7 @@ var connWorklet=function(){
 		// Some local browsers report Not allowed to load local resource for URL.createObjectURL; use dataurl instead
 		return "data:text/javascript;base64,"+btoa(unescape(encodeURIComponent(clazz)));
 	};
-	
+
 	var awNext=function(){// Can continue, not disconnected
 		return isWorklet && stream._na;
 	};
@@ -282,7 +282,7 @@ var connWorklet=function(){
 		};
 		CLog("Connect uses "+audioWorklet+", set "+RecTxt+"."+ConnectEnableWorklet+"=false to restore legacy "+scriptProcessor+webMTips+oldIsBest,3);
 	};
-	
+
 	// If resume at start and node construction happen simultaneously, some browsers may crash. Wrap in resume to avoid the issue
 	ctx.resume()[calls&&"finally"](function(){// Comment out to reproduce crash STATUS_ACCESS_VIOLATION
 		if(!awNext())return;
@@ -313,14 +313,14 @@ var connWebM=function(){
 	var onData="ondataavailable";
 	var webmType="audio/webm; codecs=pcm";
 	isWebM=stream.isWebM=Recorder[ConnectEnableWebM];
-	
+
 	var supportMR=MR && (onData in MR.prototype) && MR.isTypeSupported(webmType);
 	webMTips=supportMR?"":" (browser does not support "+MRWebMPCM+")";
 	if(!isUserMedia || !isWebM || !supportMR){
 		connWorklet(); // Not microphone recording (MediaRecorder sampleRate uncontrollable) or disabled/unsupported
 		return;
 	}
-	
+
 	var mrNext=function(){// Can continue, not disconnected
 		return isWebM && stream._ra;
 	};
@@ -337,7 +337,7 @@ var connWebM=function(){
 			},500);
 		};
 	};
-	
+
 	var mrSet=Object.assign({mimeType:webmType}, Recorder.ConnectWebMOptions);
 	var mr=stream._r=new MR(stream, mrSet);
 	var webmData=stream._rd={sampleRate:ctx[sampleRateTxt]};
@@ -352,7 +352,7 @@ var connWebM=function(){
 					connWorklet();
 					return;
 				};
-				
+
 				if(badInt){
 					clearTimeout(badInt);badInt="";
 				};
@@ -391,7 +391,7 @@ var _Disconn_r=function(stream){
 var Disconnect=function(streamStore){
 	streamStore=streamStore||Recorder;
 	var isGlobal=streamStore==Recorder;
-	
+
 	var stream=streamStore.Stream;
 	if(stream){
 		if(stream._m){
@@ -404,7 +404,7 @@ var Disconnect=function(streamStore){
 		};
 		_Disconn_n(stream);
 		_Disconn_r(stream);
-		
+
 		if(isGlobal){// When global, stop the stream (microphone); do not handle provided streams
 			var tracks=stream.getTracks&&stream.getTracks()||stream.audioTracks||[];
 			for(var i=0;i<tracks.length;i++){
@@ -440,14 +440,14 @@ Recorder.SampleData=function(pcmDatas,pcmSampleRate,newSampleRate,prevChunkInfo,
 	prevChunkInfo||(prevChunkInfo={});
 	var index=prevChunkInfo.index||0;
 	var offset=prevChunkInfo.offset||0;
-	
+
 	var frameNext=prevChunkInfo.frameNext||[];
 	option||(option={});
 	var frameSize=option.frameSize||1;
 	if(option.frameType){
 		frameSize=option.frameType=="mp3"?1152:1;
 	};
-	
+
 	var nLen=pcmDatas.length;
 	if(index>nLen+1){
 		CLog("SampleData seems given a non-reset chunk "+index+">"+nLen,3);
@@ -457,7 +457,7 @@ Recorder.SampleData=function(pcmDatas,pcmSampleRate,newSampleRate,prevChunkInfo,
 		size+=pcmDatas[i].length;
 	};
 	size=Math.max(0,size-Math.floor(offset));
-	
+
 	// Sampling https://www.cnblogs.com/blqw/p/3782420.html
 	var step=pcmSampleRate/newSampleRate;
 	if(step>1){// New sample rate lower than input; downsample
@@ -466,7 +466,7 @@ Recorder.SampleData=function(pcmDatas,pcmSampleRate,newSampleRate,prevChunkInfo,
 		step=1;
 		newSampleRate=pcmSampleRate;
 	};
-	
+
 	size+=frameNext.length;
 	var res=new Int16Array(size);
 	var idx=0;
@@ -481,20 +481,20 @@ Recorder.SampleData=function(pcmDatas,pcmSampleRate,newSampleRate,prevChunkInfo,
 		var i=offset,il=o.length;
 		while(i<il){
 			//res[idx]=o[Math.round(i)]; direct simple sampling
-			
+
 			//https://www.cnblogs.com/xiaoqi/p/6993912.html
 			// Linear interpolation yields better quality than simple sampling
 			var before = Math.floor(i);
 			var after = Math.ceil(i);
 			var atPoint = i - before;
-			
+
 			var beforeVal=o[before];
 			var afterVal=after<il ? o[after]
 				: (// Next point out of bounds, try next array
 					(pcmDatas[index+1]||[beforeVal])[0]||0
 				);
 			res[idx]=beforeVal+(afterVal-beforeVal)*atPoint;
-			
+
 			idx++;
 			i+=step;// sample
 		};
@@ -508,11 +508,11 @@ Recorder.SampleData=function(pcmDatas,pcmSampleRate,newSampleRate,prevChunkInfo,
 		frameNext=new Int16Array(res.buffer.slice(u8Pos));
 		res=new Int16Array(res.buffer.slice(0,u8Pos));
 	};
-	
+
 	return {
 		index:index
 		,offset:offset
-		
+
 		,frameNext:frameNext
 		,sampleRate:newSampleRate
 		,data:res
@@ -592,45 +592,45 @@ var IsLoser=true;try{IsLoser=!console.log.apply;}catch(e){};
 var ID=0;
 function initFn(set){
 	this.id=++ID;
-	
+
 	// If traffic collection enabled, send a beacon image
 	Traffic();
-	
-	
+
+
 	var o={
 		type:"mp3" // Output type: mp3,wav; wav is huge; mp3 support increases js size
 		,bitRate:16 // Bit rate wav:16/8-bit; MP3: 8kbps 1k/s, 8kbps 2k/s small files
-		
+
 		,sampleRate:16000 // Sample rate; wav size = sampleRate*time; mp3 low bitrates affected
 					// wav: any; mp3 allowed: 48000,44100,32000,24000,22050,16000,12000,11025,8000
 					// Reference: https://www.cnblogs.com/devin87/p/mp3-recorder.html
-		
+
 		,onProcess:NOOP // fn(buffers,powerLevel,bufferDuration,bufferSampleRate,newBufferIdx,asyncEnd) buffers are accumulated PCM chunks since start; powerLevel 0-100; bufferDuration ms; bufferSampleRate sample rate; newBufferIdx start index for this callback; asyncEnd required if returns true (async)
-		
+
 		//******* Advanced Settings ******
 		//,sourceStream:MediaStream Object
 				// Optionally provide a MediaStream for recording/processing (exclusive to this instance); otherwise use microphone via getUserMedia (global shared)
 				// e.g., captureStream of audio/video elements; WebRTC remote stream; custom streams
 				// Note: stream must have at least one Audio Track; e.g., wait until audio element can play
-		
+
 		//,audioTrackSet:{ deviceId:"",groupId:"", autoGainControl:true, echoCancellation:true, noiseSuppression:true }
 				// getUserMedia audio constraints: deviceId, echoCancellation, noiseSuppression, etc. Not guaranteed to take effect.
 				// As microphone is shared globally, close previous before re-open with new config
 				// More: https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
-		
+
 		//,disableEnvInFix:false internal param to disable input-loss compensation on device stutter
-		
+
 		//,takeoffEncodeChunk:NOOP // fn(chunkBytes) Take over encoder output in real-time encoding env; receives Uint8Array chunks. All chunks concatenated form full audio.
 				// When provided, encoder won't store output internally; if real-time not supported, open will fail.
 				// stop will return 0-byte blob since encoder holds no audio data.
 				// Only mp3 currently supports real-time encoding.
 	};
-	
+
 	for(var k in set){
 		o[k]=set[k];
 	};
 	this.set=o;
-	
+
 	this._S=9;// stop sync lock; stop can prevent start during open
 	this.Sync={O:9,C:9};// similar to Recorder.Sync but non-global, just to simplify logic
 };
@@ -639,7 +639,7 @@ Recorder.Sync={/*open*/O:9,/*close*/C:9};
 
 Recorder.prototype=initFn.prototype={
 	CLog:CLog
-	
+
 	// Where to store stream-related data; if sourceStream provided, store on instance; otherwise global
 	,_streamStore:function(){
 		if(this.set.sourceStream){
@@ -648,7 +648,7 @@ Recorder.prototype=initFn.prototype={
 			return Recorder;
 		}
 	}
-	
+
 	// Open recording resource True(),False(msg,isUserNotAllow); must call close; async; typically open then close; repeatable
 	,open:function(True,False){
 		var This=this,streamStore=This._streamStore();
@@ -658,15 +658,15 @@ Recorder.prototype=initFn.prototype={
 			This.CLog("record open failed: "+errMsg+",isUserNotAllow:"+isUserNotAllow,1);
 			False&&False(errMsg,isUserNotAllow);
 		};
-		
+
 		var ok=function(){
 			This.CLog("open ok id:"+This.id);
 			True();
-			
+
 				This._SO=0;// release stop's prevention of start during open
 		};
-		
-		
+
+
 		// Sync lock
 		var Lock=streamStore.Sync;
 		var lockOpen=++Lock.O,lockClose=Lock.C;
@@ -686,26 +686,26 @@ Recorder.prototype=initFn.prototype={
 				return true;
 			};
 		};
-		
+
 		// Environment check
 		var checkMsg=This.envCheck({envName:"H5",canProcess:true});
 		if(checkMsg){
 			failCall("Cannot record: "+checkMsg);
 			return;
 		};
-		
-		
+
+
 		//*********** Provided MediaStream directly ************
 		if(This.set.sourceStream){
 			if(!Recorder.GetContext()){
 				failCall("This browser does not support recording from provided stream");
 				return;
 			};
-			
+
 			Disconnect(streamStore);// If opened before, disconnect first
 			This.Stream=This.set.sourceStream;
 			This.Stream._call={};
-			
+
 			try{
 				Connect(streamStore);
 			}catch(e){
@@ -715,8 +715,8 @@ Recorder.prototype=initFn.prototype={
 			ok();
 			return;
 		};
-		
-		
+
+
 		//*********** Open microphone to get global audio stream ************
 		var codeFail=function(code,msg){
 			try{// Check cross-origin first
@@ -725,7 +725,7 @@ Recorder.prototype=initFn.prototype={
 				failCall('No permission to record (cross-origin; try adding microphone policy to iframe, e.g., allow="camera;microphone")');
 				return;
 			};
-			
+
 			if(/Permission|Allow/i.test(code)){
 				failCall("User denied microphone permission",true);
 			}else if(window.isSecureContext===false){
@@ -736,8 +736,8 @@ Recorder.prototype=initFn.prototype={
 				failCall(msg);
 			};
 		};
-		
-		
+
+
 		// If already open and valid, do not reopen
 		if(Recorder.IsOpen()){
 			ok();
@@ -747,7 +747,7 @@ Recorder.prototype=initFn.prototype={
 			codeFail("","This browser does not support recording");
 			return;
 		};
-				
+
 		// Request permission; most browsers will prompt if not previously granted
 		var f1=function(stream){
 			// https://github.com/xiangyuecn/Recorder/issues/14 Sometimes track.readyState!="live" shortly after callback; delay to ensure true async; no impact on normal browsers
@@ -760,10 +760,10 @@ Recorder.prototype=initFn.prototype={
 				};
 				Recorder.Stream=stream;
 				if(lockFail())return;
-				
+
 				if(Recorder.IsOpen()){
 					if(oldStream)This.CLog("Detected multiple simultaneous open calls",1);
-					
+
 					Connect(streamStore,1);
 					ok();
 				}else{
@@ -774,10 +774,10 @@ Recorder.prototype=initFn.prototype={
 		var f2=function(e){
 			var code=e.name||e.message||e.code+":"+e;
 			This.CLog("Error requesting microphone permission",1,e);
-			
+
 			codeFail(code,"Cannot record: "+code);
 		};
-		
+
 		var trackSet={
 			noiseSuppression:false // Default disable NR
 			,echoCancellation:false // Echo cancellation
@@ -785,7 +785,7 @@ Recorder.prototype=initFn.prototype={
 		var trackSet2=This.set.audioTrackSet;
 		for(var k in trackSet2)trackSet[k]=trackSet2[k];
 		trackSet.sampleRate=Recorder.Ctx.sampleRate;// must specify sampleRate to avoid 16k MediaRecorder on mobile
-		
+
 		try{
 			var pro=Recorder.Scope[getUserMediaTxt]({audio:trackSet},f1,f2);
 		}catch(e){// if cannot set trackSet, fallback
@@ -799,10 +799,10 @@ Recorder.prototype=initFn.prototype={
 	// Close and release recording resources
 	,close:function(call){
 		call=call||NOOP;
-		
+
 		var This=this,streamStore=This._streamStore();
 		This._stop();
-		
+
 		var Lock=streamStore.Sync;
 		This._O=0;
 		if(This._O_!=Lock.O){
@@ -812,22 +812,22 @@ Recorder.prototype=initFn.prototype={
 			return;
 		};
 		Lock.C++;// acquire control
-		
+
 		Disconnect(streamStore);
-		
+
 		This.CLog("close");
 		call();
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	/* Mock a segment of recording for later encoding; provide pcm data and its sample rate */
 	,mock:function(pcmData,pcmSampleRate){
 		var This=this;
 		This._stop();// clear existing resources
-		
+
 		This.isMock=1;
 		This.mockEnvInfo=null;
 		This.buffers=[pcmData];
@@ -838,14 +838,14 @@ Recorder.prototype=initFn.prototype={
 	,envCheck:function(envInfo){// Environment availability check; return errMsg: "" ok or reason
 		//envInfo={envName:"H5",canProcess:true}
 		var errMsg,This=this,set=This.set;
-		
+
 		// Check CPU endianness; reject rare big-endian since untested
 		var tag="CPU_BE";
 		if(!errMsg && !Recorder[tag] && window.Int8Array && !new Int8Array(new Int32Array([1]).buffer)[0]){
 			Traffic(tag); // send beacon if traffic enabled
 			errMsg="Unsupported "+tag+" architecture";
 		};
-		
+
 		// Check whether encoder config is usable in environment
 		if(!errMsg){
 			var type=set.type;
@@ -857,7 +857,7 @@ Recorder.prototype=initFn.prototype={
 				};
 			};
 		};
-		
+
 		return errMsg||"";
 	}
 	,envStart:function(mockEnvInfo,sampleRate){// Start for platform env
@@ -866,12 +866,12 @@ Recorder.prototype=initFn.prototype={
 		This.mockEnvInfo=mockEnvInfo;
 		This.buffers=[];// data buffer
 		This.recSize=0;// data size
-		
+
 		This.envInLast=0;// last envIn time
 		This.envInFirst=0;// first envIn record time
 		This.envInFix=0;// total compensation time
 		This.envInFixTs=[];// compensation counters
-		
+
 		// engineCtx needs final sample rate predetermined
 		var setSr=set[sampleRateTxt];
 		if(setSr>sampleRate){
@@ -879,7 +879,7 @@ Recorder.prototype=initFn.prototype={
 		}else{ setSr=0 }
 		This[srcSampleRateTxt]=sampleRate;
 		This.CLog(srcSampleRateTxt+": "+sampleRate+" set."+sampleRateTxt+": "+set[sampleRateTxt]+(setSr?" ignore "+setSr:""), setSr?3:0);
-		
+
 		This.engineCtx=0;
 		// This type may support real-time encode (Worker)
 		if(This[set.type+"_start"]){
@@ -899,15 +899,15 @@ Recorder.prototype=initFn.prototype={
 		var bufferSampleRate=This[srcSampleRateTxt];
 		var size=pcm.length;
 		var powerLevel=Recorder.PowerLevel(sum,size);
-		
+
 		var buffers=This.buffers;
 		var bufferFirstIdx=buffers.length;// Previous buffers processed by onProcess; do not modify
 		buffers.push(pcm);
-		
+
 		// Will be overridden with engineCtx; keep a copy
 		var buffersThis=buffers;
 		var bufferFirstIdxThis=bufferFirstIdx;
-		
+
 		// Compensation for stutter: when device is laggy, H5 may receive less data causing playback speedup; ensure duration doesn't shrink, though audio quality can't be fixed. Uses input timing to detect need to insert silent frames. Requires >=6 inputs or >1s to start. If loss >1/3 within sliding window, compensate.
 		var now=Date.now();
 		var pcmTime=Math.round(size/bufferSampleRate*1000);
@@ -939,7 +939,7 @@ Recorder.prototype=initFn.prototype={
 				var fixOpen=!set.disableEnvInFix;
 				This.CLog("["+now+"]"+(fixOpen?"":"no ")+"compensate "+addTime+"ms",3);
 				This.envInFix+=addTime;
-				
+
 				// Compensate with silence
 				if(fixOpen){
 					var addPcm=new Int16Array(addTime*bufferSampleRate/1000);
@@ -948,34 +948,34 @@ Recorder.prototype=initFn.prototype={
 				};
 			};
 		};
-		
-		
+
+
 		var sizeOld=This.recSize,addSize=size;
 		var bufferSize=sizeOld+addSize;
 		This.recSize=bufferSize;// adjust after onProcess; new data may change
-		
-		
+
+
 		// If supported, enable real-time encoding
 		if(engineCtx){
 			// Resample to set's sample rate
 			var chunkInfo=Recorder.SampleData(buffers,bufferSampleRate,set[sampleRateTxt],engineCtx.chunkInfo);
 			engineCtx.chunkInfo=chunkInfo;
-			
+
 			sizeOld=engineCtx.pcmSize;
 			addSize=chunkInfo.data.length;
 			bufferSize=sizeOld+addSize;
 			engineCtx.pcmSize=bufferSize;// Will adjust after onProcess as new data may change
-			
+
 			buffers=engineCtx.pcmDatas;
 			bufferFirstIdx=buffers.length;
 			buffers.push(chunkInfo.data);
 			bufferSampleRate=chunkInfo[sampleRateTxt];
 		};
-		
+
 		var duration=Math.round(bufferSize/bufferSampleRate*1000);
 		var bufferNextIdx=buffers.length;
 		var bufferNextIdxThis=buffersThis.length;
-		
+
 		// Allow async processing of buffer data
 		var asyncEnd=function(){
 			// Recompute size; async already subtracted; sync needs to subtract then recompute
@@ -987,14 +987,14 @@ Recorder.prototype=initFn.prototype={
 					hasClear=1;
 				}else{
 					num+=buffer.length;
-					
+
 					// Push to background real-time encoding
 					if(engineCtx&&buffer.length){
 						This[set.type+"_encode"](engineCtx,buffer);
 					};
 				};
 			};
-			
+
 			// Sync clean This.buffers; fully clear buffersThis which is unused
 			if(hasClear && engineCtx){
 				var i=bufferFirstIdxThis;
@@ -1005,11 +1005,11 @@ Recorder.prototype=initFn.prototype={
 					buffersThis[i]=null;
 				};
 			};
-			
+
 			// Update size; if async clear occurred, add back; sync no-op
 			if(hasClear){
 				num=asyncBegin?addSize:0;
-				
+
 				buffers[0]=null;// fully cleared
 			};
 			if(engineCtx){
@@ -1026,12 +1026,12 @@ Recorder.prototype=initFn.prototype={
 				// don't use CLog here to avoid duplicate console logs
 			console.error(procTxt+" callback error is not allowed; ensure no exceptions",e);
 		};
-		
+
 		var slowT=Date.now()-now;
 		if(slowT>10 && This.envInFirst-now>1000){ // start monitoring performance after 1s
 			This.CLog(procTxt+" low performance, took "+slowT+"ms",3);
 		};
-		
+
 		if(asyncBegin===true){
 			// Async mode enabled; onProcess took over new buffers; clear immediately
 			var hasClear=0;
@@ -1042,7 +1042,7 @@ Recorder.prototype=initFn.prototype={
 					buffers[i]=new Int16Array(0);
 				};
 			};
-			
+
 			if(hasClear){
 				This.CLog("Cannot clear buffers before entering async",3);
 			}else{
@@ -1057,14 +1057,14 @@ Recorder.prototype=initFn.prototype={
 			asyncEnd();
 		};
 	}
-	
-	
-	
-	
+
+
+
+
 	// Start recording; must call open first; if not opened and forced to call, internal error will be silent; stop will yield error
 	,start:function(){
 		var This=this,ctx=Recorder.Ctx;
-		
+
 		var isOpen=1;
 		if(This.set.sourceStream){// provided stream; only check if open was called
 			if(!This.Stream){
@@ -1078,11 +1078,11 @@ Recorder.prototype=initFn.prototype={
 			return;
 		};
 		This.CLog("start recording");
-		
+
 		This._stop();
 		This.state=3;// 0=idle 1=recording 2=paused 3=waiting ctx activation
 		This.envStart(null, ctx[sampleRateTxt]);
-		
+
 		// check whether stop was called during open
 		if(This._SO&&This._SO+1!=This._S){// previously called _stop once
 			// stop called before open completed; terminate start; avoid this scenario
@@ -1090,7 +1090,7 @@ Recorder.prototype=initFn.prototype={
 			return;
 		};
 		This._SO=0;
-		
+
 		var end=function(){
 			if(This.state==3){
 				This.state=1;
@@ -1127,7 +1127,7 @@ Recorder.prototype=initFn.prototype={
 			This.state=1;
 			This.CLog("resume");
 			This.envResume();
-			
+
 			var stream=This._streamStore().Stream;
 			stream._call[This.id]=function(pcm,sum){
 				if(This.state==1){
@@ -1137,10 +1137,10 @@ Recorder.prototype=initFn.prototype={
 		ConnAlive(stream);// AudioWorklet runs only after ctx activation
 		};
 	}
-	
-	
-	
-	
+
+
+
+
 	,_stop:function(keepEngine){
 		var This=this,set=This.set;
 		if(!This.isMock){
@@ -1166,7 +1166,7 @@ Recorder.prototype=initFn.prototype={
 		var This=this,set=This.set,t1;
 		var envInMS=This.envInLast-This.envInFirst, envInLen=envInMS&&This.buffers.length; // may not have started
 		This.CLog("stop delta from start "+(envInMS?envInMS+"ms compensate "+This.envInFix+"ms"+" envIn:"+envInLen+" fps:"+(envInLen/envInMS*1000).toFixed(1):"-"));
-		
+
 		var end=function(){
 			This._stop();// fully stop engineCtx
 			if(autoClose){
@@ -1210,7 +1210,7 @@ Recorder.prototype=initFn.prototype={
 			err("encoder not loaded: "+set.type);
 			return;
 		};
-		
+
 		// Env check for mock, since open already checked
 		if(This.isMock){
 			var checkMsg=This.envCheck(This.mockEnvInfo||{envName:"mock",canProcess:false});// mock without env info has no onProcess callback
@@ -1219,29 +1219,29 @@ Recorder.prototype=initFn.prototype={
 				return;
 			};
 		};
-		
+
 		// If supported, complete real-time encoding
 		var engineCtx=This.engineCtx;
 		if(This[set.type+"_complete"]&&engineCtx){
 			var duration=Math.round(engineCtx.pcmSize/set[sampleRateTxt]*1000);// Slight discrepancy due to continuous resampling precision
-			
+
 			t1=Date.now();
 			This[set.type+"_complete"](engineCtx,function(blob){
 				ok(blob,duration);
 			},err);
 			return;
 		};
-		
+
 		// UI-thread encoding with resampling
 		t1=Date.now();
 		var chunk=Recorder.SampleData(This.buffers,This[srcSampleRateTxt],set[sampleRateTxt]);
-		
+
 		set[sampleRateTxt]=chunk[sampleRateTxt];
 		var res=chunk.data;
 		var duration=Math.round(res.length/set[sampleRateTxt]*1000);
-		
+
 		This.CLog("resample "+size+"->"+res.length+" took:"+(Date.now()-t1)+"ms");
-		
+
 		setTimeout(function(){
 			t1=Date.now();
 			This[set.type](res,function(blob){
@@ -1270,12 +1270,12 @@ var WebM_Extract=function(inBytes, scope){
 	};
 	var tracks=scope.tracks, position=[scope.pos[0]];
 	var endPos=function(){ scope.pos[0]=position[0] };
-	
+
 	var sBL=scope.bytes.length;
 	var bytes=new Uint8Array(sBL+inBytes.length);
 	bytes.set(scope.bytes); bytes.set(inBytes,sBL);
 	scope.bytes=bytes;
-	
+
 	// First read header and Track info
 	if(!scope._ht){
 		readMatroskaVInt(bytes, position);//EBML Header
@@ -1343,7 +1343,7 @@ var WebM_Extract=function(inBytes, scope){
 			}
 		}
 	}
-	
+
 // Validate audio parameters; if not as expected, refuse to process
 	var track0=scope.track0;
 	if(!track0)return;
@@ -1357,7 +1357,7 @@ var WebM_Extract=function(inBytes, scope){
 		scope.bad=1;
 		return -1;
 	}
-	
+
 // Iterate SimpleBlock in Cluster
 	var datas=[],dataLen=0;
 	while(position[0]<bytes.length){
@@ -1379,20 +1379,20 @@ var WebM_Extract=function(inBytes, scope){
 		}
 		endPos();
 	}
-	
+
 	if(dataLen){
 		var more=new Uint8Array(bytes.length-scope.pos[0]);
 		more.set(bytes.subarray(scope.pos[0]));
 	scope.bytes=more; // clear already-read buffer
 		scope.pos[0]=0;
-		
+
 	var u8arr=new Uint8Array(dataLen); // obtained audio data
 		for(var i=0,i2=0;i<datas.length;i++){
 			u8arr.set(datas[i],i2);
 			i2+=datas[i].length;
 		}
 		var arr=new Float32Array(u8arr.buffer);
-		
+
 	if(track0.channels>1){// multi-channel; extract single channel
 			var arr2=[];
 			for(var i=0;i<arr.length;){
@@ -1461,7 +1461,7 @@ var Traffic=Recorder.Traffic=function(report){
 		var m=/^(https?:..[^\/#]*\/?)[^#]*/i.exec(location.href)||[];
 		var host=(m[1]||"http://file/");
 		var idf=(m[0]||host)+report;
-		
+
 		if(imgUrl.indexOf("//")==0){
 			// Prepend http/https for protocol-relative url; file protocol needs prefix
 			if(/^https:/i.test(idf)){
@@ -1473,10 +1473,10 @@ var Traffic=Recorder.Traffic=function(report){
 		if(report){
 			imgUrl=imgUrl+"&cu="+encodeURIComponent(host+report);
 		};
-		
+
 		if(!data[idf]){
 			data[idf]=1;
-			
+
 			var img=new Image();
 			img.src=imgUrl;
 			CLog("Traffic Analysis Image: "+(report||RecTxt+".TrafficImgUrl="+Recorder.TrafficImgUrl));

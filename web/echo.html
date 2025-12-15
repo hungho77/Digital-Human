@@ -6,7 +6,7 @@
   <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 
 
-  
+
 </head>
 <body>
   <div class="container">
@@ -20,7 +20,7 @@
       <button type="submit" class="btn btn-default">Send</button>
     </form>
     <div id="log">
-		
+
 	</div>
 	<video id="video_player" width="40%" controls autoplay muted></video>
   </div>
@@ -37,10 +37,10 @@
 	  ws.onmessage = function(e) {
 		console.log('Received: ' + e.data);
 		data = e
-		var vid = JSON.parse(data.data); 
+		var vid = JSON.parse(data.data);
 		console.log(typeof(vid),vid)
 		//document.getElementsByTagName("video")[0].setAttribute("src", vid["video"]);
-		
+
 	  };
 	  ws.onclose = function(e) {
 		console.log('Closed');

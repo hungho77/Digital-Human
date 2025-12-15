@@ -17,11 +17,11 @@ Recorder.prototype.pcm=function(res,True,False){
 		var This=this,set=This.set
 			,size=res.length
 			,bitRate=set.bitRate==8?8:16;
-		
+
 		var buffer=new ArrayBuffer(size*(bitRate/8));
 		var data=new DataView(buffer);
 		var offset=0;
-		
+
 		// Write sample data
 		if(bitRate==8) {
 			for(var i=0;i<size;i++,offset++) {
@@ -34,8 +34,8 @@ Recorder.prototype.pcm=function(res,True,False){
 				data.setInt16(offset,res[i],true);
 			};
 		};
-		
-		
+
+
 		True(new Blob([data.buffer],{type:"audio/pcm"}));
 	};
 
@@ -65,7 +65,7 @@ Recorder.pcm2wav=function(data,True,False){
 		False("pcm2wav must first load the wav encoder wav.js");
 		return;
 	};
-	
+
 	var reader=new FileReader();
 	reader.onloadend=function(){
 		var pcm;
@@ -79,7 +79,7 @@ Recorder.pcm2wav=function(data,True,False){
 		}else{
 			pcm=new Int16Array(reader.result);
 		};
-		
+
 		Recorder({
 			type:"wav"
 			,sampleRate:sampleRate

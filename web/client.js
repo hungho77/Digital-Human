@@ -5,7 +5,7 @@ function negotiate() {
     pc.addTransceiver('video', { direction: 'recvonly' });
     pc.addTransceiver('audio', { direction: 'recvonly' });
     console.log('Added transceivers');
-    
+
     return pc.createOffer().then((offer) => {
         console.log('Created offer:', offer);
         return pc.setLocalDescription(offer);
@@ -56,7 +56,7 @@ function negotiate() {
 
 function start() {
     console.log('Starting WebRTC connection...');
-    
+
     var config = {
         sdpSemantics: 'unified-plan'
     };
@@ -70,7 +70,7 @@ function start() {
 
     pc = new RTCPeerConnection(config);
     console.log('RTCPeerConnection created with config:', config);
-    
+
     // Add comprehensive connection monitoring
     pc.addEventListener('connectionstatechange', () => {
         console.log('Connection state changed to:', pc.connectionState);
@@ -78,14 +78,14 @@ function start() {
             console.error('WebRTC connection failed!');
         }
     });
-    
+
     pc.addEventListener('iceconnectionstatechange', () => {
         console.log('ICE connection state changed to:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') {
             console.error('ICE connection failed!');
         }
     });
-    
+
     pc.addEventListener('icegatheringstatechange', () => {
         console.log('ICE gathering state:', pc.iceGatheringState);
     });
@@ -97,7 +97,7 @@ function start() {
             const video = document.getElementById('video');
             video.srcObject = evt.streams[0];
             console.log('Set video stream:', evt.streams[0]);
-            
+
             // Handle autoplay issues
             video.play().catch(e => {
                 console.log('Video autoplay failed, user interaction required:', e);
