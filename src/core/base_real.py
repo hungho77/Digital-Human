@@ -1,24 +1,21 @@
-import numpy as np
-
-import subprocess
-import os
-import time
-import cv2
-import glob
-import resampy
-
-import queue
-from threading import Thread
-from io import BytesIO
-import soundfile as sf
-
 import asyncio
+import glob
+import os
+import queue
+import subprocess
+import time
+from io import BytesIO
+from threading import Thread
+
+import cv2
+import numpy as np
+import resampy
+import soundfile as sf
 from av import AudioFrame, VideoFrame
-
-from src.services.tts import EdgeTTS, SovitsTTS, XTTS, CosyVoiceTTS, FishTTS
-from src.utils.logger import logger
-
 from tqdm import tqdm
+
+from src.services.tts import XTTS, CosyVoiceTTS, EdgeTTS, FishTTS, SovitsTTS
+from src.utils.logger import logger
 
 
 def read_imgs(img_list):
