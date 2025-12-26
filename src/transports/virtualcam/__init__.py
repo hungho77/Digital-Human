@@ -1,0 +1,1 @@
+"""Virtual camera transport implementation."""
